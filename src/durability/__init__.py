@@ -9,6 +9,8 @@ for frameInfo in inspect.stack():
     if module and module != __name__ and not module.startswith("importlib"):
         if module == "__main__":
             importing = Path(frameInfo.filename).stem
+        elif module.endswith(".__main__"):
+            importing = module[:-9]
         else:
             importing = str(module)
         break
@@ -20,7 +22,7 @@ type JSON = dict[str, JSON] | list[JSON] | str | int | float | bool | None
 class DataStore:
     def __init__(self, name: str = importing, simple: bool = False):
         if name == "":
-            print("The name of your script/lib could not be detected. Please specify one.")
+            raise ValueError("The name of your script/lib could not be detected. Please specify one.")
         if "/" in name or "." in name:
             raise ValueError("Unallowed characters in name")
         self.name = name
