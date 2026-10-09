@@ -8,5 +8,5 @@ match sys.platform:
     case os if os.startswith("linux"): from ._linux import path, standard
     case _: raise OSError(f"Unsupported operating system: {sys.platform}")
 
-path: Path = path
+path: Path = path.resolve()
 standard: Template = standard

@@ -23,11 +23,11 @@ class DataStore:
     def __init__(self, name: str = importing, simple: bool = False):
         if name == "":
             raise ValueError("The name of your script/lib could not be detected. Please specify one.")
-        if "/" in name or "." in name:
-            raise ValueError("Unallowed characters in name")
         self.name = name
 
-        self.__path = platforms.path / toStr(useVar(platforms.standard, name))
+        self.__path = (platforms.path / toStr(useVar(platforms.standard, name))).resolve()
+        if self.__path.parent != platforms.path:
+            raise ValueError(f"Name \"{name}\" is unsafe")
         if not simple:
             self.__path.mkdir(parents=False, exist_ok=True)
 
