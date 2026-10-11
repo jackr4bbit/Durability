@@ -2,6 +2,8 @@ from .utils import useVar, toStr
 from . import platforms
 import inspect
 import json
+import tempfile
+import os
 from pathlib import Path
 
 for frameInfo in inspect.stack():
@@ -36,9 +38,23 @@ class DataStore:
 
     def __setitem__(self, key: str, value: JSON):
         self.__data[key] = value
+        path = self.__path if self.__simple else self.__path / f"{key}.json"
+        data = self.__data if self.__simple else value
+        data = json.dumps(data)
 
-        if self.__simple: self.__path.write_text(json.dumps(self.__data))
-        else: (self.__path / f"{key}.json").write_text(json.dumps(value))
+        with tempfile.NamedTemporaryFile("w", dir=path.parent, delete=False) as tmpFile:
+            tmpFile.write(data)
+            tmpFile.flush()
+            os.fsync(tmpFile.fileno())
+            tmpPath = Path(tmpFile.name)
+
+        tmpPath.replace(path)
+
+        descriptor = os.open(str(path.parent), os.O_RDONLY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
 
     def __contains__(self, key: str) -> bool:
         self.__getitem__(key)
